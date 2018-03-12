@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<ul>
+    {% for r in overviews %}
+    <ul>
+        <li> <strong>{{ r[0] }}</strong></li>
+        <ul>
+            <li>Movie: {{ r[1] }}</li>
+            <li>Overview: {{ r[2] }}</li>
+        </ul>
+    </ul>
+    {% endfor %}
+</ul>
+
+{% if not overviews %}
+There is not a saved overview.
+{% endif %}
+
+{% endblock %}

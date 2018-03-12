@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<ul>
+    {% for r in releasedates %}
+    <ul>
+        <li> <strong>{{ r[0] }}</strong></li>
+        <ul>
+            <li>Movie: {{ r[1] }}</li>
+            <li>Release Date: {{ r[2] }}</li>
+        </ul>
+    </ul>
+    {% endfor %}
+</ul>
+
+{% if not releasedates %}
+There is not a saved released date.
+{% endif %}
+
+{% endblock %}
+
