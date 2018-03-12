@@ -1,19 +1,18 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
+<h1>Titles</h1>
 <ul>
-    {% for r in movies %}
+    {% for r in titles %}
     <ul>
-        <li> <strong>{{ r[0] }}</strong></li>
-        <ul>
-            <li>Movie: {{ r[1] }}</li>
-        </ul>
+        <li> <strong>{{ r.id }}</strong> {{ r.title }}</li>
     </ul>
     {% endfor %}
 </ul>
 
-{% if not movies %}
-There is not a saved overview.
+{% if not titles %}
+There is not a saved title.
 {% endif %}
 
 {% endblock %}

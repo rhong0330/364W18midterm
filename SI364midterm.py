@@ -33,55 +33,56 @@ db = SQLAlchemy(app)
 ######################################
 
 def get_or_create_user(db_session,user_name):
-    artist = db_session.query(User).filter_by(name=user_name).first()
-    if user:
-        return user
+    tmp_user = db_session.query(User).filter_by(user=user_name).first()
+    if tmp_user:
+        flash('User already exists')
+        return tmp_user
     else:
-        user = User(name=user_name)
-        db_session.add(user)
+        tmp_user = User(user=user_name)
+        db_session.add(tmp_user)
         db_session.commit()
         flash('User succesfully added')
-        return user
+        return tmp_user
 
 def get_or_create_movie(db_session,movie_name):
-    movie = db_session.query(Title).filter_by(title=movie_name).first()
-    if movie:
-        flash('Movie is already added')
-        return movie
-    else:
-        baseurl = 'https://api.themoviedb.org/3/search/movie?api_key=4cf3715fe70bc590c1297a10298d4b6c&language=en-US&page=1&include_adult=false&'
-        param_dict = {'query':movie_name}
-        response = requests.get(baseurl, params = param_dict).json()
-        result_name=response["results"]["title"]
-        result_overview=response["results"]["overview"]
-        result_releasedate=response["results"]["release_date"]
+    baseurl = 'https://api.themoviedb.org/3/search/movie?api_key=4cf3715fe70bc590c1297a10298d4b6c&language=en-US&page=1&include_adult=false&'
+    param_dict = {'query':movie_name}
+    response = requests.get(baseurl, params = param_dict).json()
+    if len(response["results"]):
+        result_name=response["results"][0]["original_title"]
+        result_overview=response["results"][0]["overview"]
+        result_releasedate=response["results"][0]["release_date"]
+        movie = db_session.query(Title).filter_by(title=result_name).first()
+        if movie:
+            flash('Movie is already added')
+            return movie
         if result_name:
             movie = Title(title=result_name)
             db_session.add(movie)
-        else:
-            flash('Movie does not exist')
-            return 0
         if result_overview:
             overview = Overview(title=result_name,overview=result_overview)
             db_session.add(overview)
-        if releasedate:
+        if result_releasedate:
             releasedate = ReleaseDate(title=result_name,releasedate=result_releasedate)
             db_session.add(releasedate)
         db_session.commit()
-        return movie
+        flash('Movie is added succesfully')
+    else:
+        flash('Movie does not exist')
+    return movie
 
 
 ##################
 ##### MODELS #####
 ##################
 
-class Name(db.Model):
-    __tablename__ = "names"
+class User(db.Model):
+    __tablename__ = "users"
     id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(64))
+    user = db.Column(db.String(64), unique=True)
     
     def __repr__(self):
-        return "{} (ID: {})".format(self.name, self.id)
+        return "{} {}".format(self.id, self.user)
 
 class Title(db.Model):
     __tablename__ = "titles"
@@ -89,16 +90,16 @@ class Title(db.Model):
     title = db.Column(db.String(64))
 
     def __repr__(self):
-        return "{} (Title: {})".format(self.id,self.title)
+        return "{} Title: {}".format(self.id,self.title)
 
 class Overview(db.Model):
     __tablename__ = "overviews"
     id = db.Column(db.Integer,primary_key=True)
     title =db.Column(db.String(64))
-    overview = db.Column(db.String(64))
+    overview = db.Column(db.String(512))
 #
     def __repr__(self):
-        return "{} (Overview: {})".format(self.id, self.overview)
+        return "Title:{} Overview:{}".format(self.title, self.overview)
 
 
 class ReleaseDate(db.Model):
@@ -108,19 +109,19 @@ class ReleaseDate(db.Model):
     releasedate = db.Column(db.String(64))
 #
     def __repr__(self):
-        return "{} (ReleaseDate: {})".format(self.id, self.releasedate)
+        return "Title:{} ReleaseDate: {}".format(self.title, self.releasedate)
 
 
 
 ###################
 ###### FORMS ######
 ###################
-class NameForm(FlaskForm):
-    name = StringField("Please enter your name.",validators=[Required()])
+class UserForm(FlaskForm):
+    user = StringField("Please enter your username.",validators=[Required()])
     submit = SubmitField()
 
 class TitleForm(FlaskForm):
-    name = StringField("Please enter a movie name.",validators=[Required()])
+    title = StringField("Please enter a movie name.",validators=[Required(),Length(max=64, message="Cannot be longer than 64 characters")]])
     submit = SubmitField()
 
 
@@ -139,48 +140,47 @@ def page_not_found(e):
 
 @app.route('/')
 def home():
-    form = NameForm() # User should be able to enter name after name and each one will be saved, even if it's a duplicate! Sends data with GET
+    return render_template('base.html')
+
+
+
+@app.route('/addUser', methods=['GET', 'POST'])
+def add_users():
+    form = UserForm() # User should be able to enter name after name and each one will be saved, even if it's a duplicate! Sends data with GET
     if form.validate_on_submit():
-        name = form.name.data
-        newname = Name(name)
-        db.session.add(newname)
-        db.session.commit()
-        return redirect(url_for('all_names'))
-    return render_template('base.html',form=form)
+        user_in = form.user.data
+        get_or_create_user(db.session,user_in)
+        return redirect(url_for('all_users'))
+    return render_template('add_users.html',form=form)
 
-@app.route('/names')
-def all_names():
-    names = Name.query.all()
-    return render_template('name_example.html',names=names)
-
-
-@app.route('/addMovie')
+@app.route('/addMovie', methods=['GET', 'POST'])
 def add_movies():
     form = TitleForm() # User should be able to enter name after name and each one will be saved, even if it's a duplicate! Sends data with GET
     if form.validate_on_submit():
-        title = form.title.data
-        newtitle = Title(title)
-        db.session.add(newtitle)
-        db.session.commit()
-        return redirect(url_for('titles'))
-    return render_template('addMovie.html',form=form)
+        title_in = form.title.data
+        get_or_create_movie(db.session,title_in)
+        return redirect(url_for('all_titles'))
+    return render_template('add_movies.html',form=form)
 
+@app.route('/users')
+def all_users():
+    users_in = User.query.all()
+    return render_template('users.html',users=users_in)
 
 @app.route('/titles')
 def all_titles():
-    titles = Title.query.all()
-    return render_template('titles.html',titles=names)
+    titles_in = Title.query.all()
+    return render_template('titles.html',titles=titles_in)
 
 @app.route('/overviews')
 def all_overviews():
-    names = Overview.query.all()
-    return render_template('overviews.html',overviews=names)
-
+    overviews_in = Overview.query.all()
+    return render_template('overviews.html',overviews=overviews_in)
 
 @app.route('/releasedates')
 def all_releasedates():
-    names = ReleaseDate.query.all()
-    return render_template('releasedates.html',releasedates=names)
+    releasedates_in = ReleaseDate.query.all()
+    return render_template('releasedates.html',releasedates=releasedates_in)
 
 
 ## Code to run the application...

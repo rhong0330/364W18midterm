@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Users Visited</h1>
+
+{% for n in users %}
+<p>{{ n }}</p>
+{% endfor %}
+
+
+{% if not users %}
+There is not a visited user.
+{% endif %}
+
+{% endblock %}

@@ -1,11 +1,10 @@
 
 
-{% block content1 %}
-<form action="{{ url_for('home') }}" method="POST">
-    {{ form.name.label() }}{{ form.name() }}<br>
-    {{ form.submit() }}
-    {{ form.hidden_tag() }}
-</form>
+{% block content %}
+
+
+{% endblock %}
+
 <div>
     {% for message in get_flashed_messages() %}
     <strong>{{ message }}</strong>
@@ -13,13 +12,13 @@
 </div>
 <h3>Menu</h3>
 <ul>
-    <li><a href="{{ url_for('home')}}">Go to home and add a username</a></li>
+    <li><a href="{{ url_for('home')}}">Go to home </a></li>
+    <li><a href="{{ url_for('add_users')}}">Add a username</a></li>
     <li><a href="{{ url_for('add_movies')}}">Add a movie</a></li>
     <li><a href="{{ url_for('all_titles')}}">Find titles to the movies you added</a></li>
     <li><a href="{{ url_for('all_overviews')}}">Find overviews to the movies you added</a></li>
     <li><a href="{{ url_for('all_releasedates')}}">Find releasedates to the movies you added</a></li>
-    <li><a href="{{ url_for('all_names')}}">List of users that used this site</a></li>
+    <li><a href="{{ url_for('all_users')}}">List of users that used this site</a></li>
     
 </ul>
 
-{% endblock %}

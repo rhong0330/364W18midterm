@@ -1,1 +1,14 @@
+{% extends 'base.html' %}
 
+{% block content %}
+
+<h1><li>Type a movie name and the search engine will try to find the closest matching movie title.</li><li> If succesfully added, you can explore to see its overview and release date</li></h1>
+<div>
+    <form action="{{ url_for('add_movies') }}" method="POST">
+        {{ form.title.label() }}{{ form.title() }}<br>
+        {{ form.submit() }}
+        {{ form.hidden_tag() }}
+    </form>
+</div>
+
+{% endblock %}

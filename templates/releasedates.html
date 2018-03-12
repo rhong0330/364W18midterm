@@ -1,14 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
+<h1>Release Dates</h1>
 <ul>
     {% for r in releasedates %}
     <ul>
-        <li> <strong>{{ r[0] }}</strong></li>
-        <ul>
-            <li>Movie: {{ r[1] }}</li>
-            <li>Release Date: {{ r[2] }}</li>
-        </ul>
+        <li> <strong>{{ r.id }} {{ r.title }} </strong></li>
+        <li>Release Date: {{ r.releasedate }}</li>
     </ul>
     {% endfor %}
 </ul>
